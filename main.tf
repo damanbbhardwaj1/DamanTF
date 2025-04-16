@@ -107,12 +107,12 @@ data "aws_ami" "windows" {
 }
 
 resource "aws_instance" "windows_ec2" {
-  ami                         = data.aws_ami.windows.id
-  instance_type               = "t3.medium"
-  subnet_id                   = aws_subnet.public.id
-  key_name                    = aws_key_pair.windows_key_pair.key_name
-  vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
-  iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
+  ami                    = data.aws_ami.windows.id
+  instance_type          = "t3.medium"
+  subnet_id              = aws_subnet.public.id
+  key_name               = aws_key_pair.windows_key_pair.key_name
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
 
   tags = {
     Name = "Windows-EC2-Fleet"
