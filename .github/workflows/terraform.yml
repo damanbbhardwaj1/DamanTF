@@ -38,5 +38,5 @@ jobs:
       run: terraform plan
 
     - name: Terraform Apply (main branch only)
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/master'
       run: terraform apply -auto-approve
