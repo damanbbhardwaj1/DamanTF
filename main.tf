@@ -9,7 +9,7 @@ resource "tls_private_key" "windows_key" {
 }
 
 resource "aws_secretsmanager_secret" "key_secret" {
-  name = "windows-key-pair1"
+  name = "windows-key-pair"
 }
 
 resource "aws_secretsmanager_secret_version" "key_secret_version" {
