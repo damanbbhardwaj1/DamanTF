@@ -1,4 +1,3 @@
-
 name: Terraform CI/CD
 
 on:
@@ -6,12 +5,16 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:  # ✅ Manual trigger support
+  workflow_dispatch:
 
 jobs:
   terraform:
     name: 'Terraform Apply'
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: eu-west-1
 
     steps:
     - name: Checkout repository
@@ -37,7 +40,3 @@ jobs:
     - name: Terraform Apply (main branch only)
       if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: eu-west-1
