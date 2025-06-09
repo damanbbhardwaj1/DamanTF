@@ -107,7 +107,7 @@ data "aws_ami" "wwindows" {
 }
 
 resource "aws_instance" "windows_ec2" {
-  ami                    = data.aws_ami.windows.id
+  ami                    = data.aws_ami.wwindows.id
   instance_type          = "t3.medium"
   subnet_id              = aws_subnet.public.id
   key_name               = aws_key_pair.wwindows_key_pair.key_name
