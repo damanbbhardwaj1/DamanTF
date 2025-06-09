@@ -3,23 +3,23 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-resource "tls_private_key" "windows_key" {
+resource "tls_private_key" "wwindows_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
 resource "aws_secretsmanager_secret" "key_secret" {
-  name = "windows-key-pair"
+  name = "wwindows-key-pair"
 }
 
 resource "aws_secretsmanager_secret_version" "key_secret_version" {
   secret_id     = aws_secretsmanager_secret.key_secret.id
-  secret_string = tls_private_key.windows_key.private_key_pem
+  secret_string = tls_private_key.wwindows_key.private_key_pem
 }
 
-resource "aws_key_pair" "windows_key_pair" {
-  key_name   = "windows-key"
-  public_key = tls_private_key.windows_key.public_key_openssh
+resource "aws_key_pair" "wwindows_key_pair" {
+  key_name   = "wwindows-key"
+  public_key = tls_private_key.wwindows_key.public_key_openssh
 }
 
 resource "aws_vpc" "main" {
@@ -52,7 +52,7 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 resource "aws_security_group" "ec2_sg" {
-  name        = "ec2-windows-sg"
+  name        = "ec2-wwindows-sg"
   description = "Allow RDP and SSM"
   vpc_id      = aws_vpc.main.id
 
@@ -96,7 +96,7 @@ resource "aws_iam_instance_profile" "ssm_profile" {
   role = aws_iam_role.ssm_role.name
 }
 
-data "aws_ami" "windows" {
+data "aws_ami" "wwindows" {
   most_recent = true
   owners      = ["801119661308"]
 
@@ -110,7 +110,7 @@ resource "aws_instance" "windows_ec2" {
   ami                    = data.aws_ami.windows.id
   instance_type          = "t3.medium"
   subnet_id              = aws_subnet.public.id
-  key_name               = aws_key_pair.windows_key_pair.key_name
+  key_name               = aws_key_pair.wwindows_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
 
