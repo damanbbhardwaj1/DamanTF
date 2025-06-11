@@ -2,33 +2,31 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-resource "tls_private_key" "dsa_windows_key" {
+# S3 backend configuration
+terraform {
+  backend "s3" {
+    bucket = "<your-s3-bucket-name>"
+    key    = "terraform/windows2016-server/terraform.tfstate"
+    region = "ap-south-1"
+  }
+}
+
+resource "tls_private_key" "windows_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-resource "aws_secretsmanager_secret" "key_secret" {
-  name = "DSA-windows"
-  lifecycle {
-    prevent_destroy = true
-    ignore_changes  = [name]
-  }
+resource "aws_ssm_parameter" "windows_private_key" {
+  name        = "/ec2/windows2016/private_key"
+  type        = "SecureString"
+  value       = tls_private_key.windows_key.private_key_pem
+  description = "Windows 2016 EC2 private key for RDP access"
+  overwrite   = true
 }
 
-resource "aws_secretsmanager_secret_version" "key_secret_version" {
-  secret_id     = aws_secretsmanager_secret.key_secret.id
-  secret_string = tls_private_key.dsa_windows_key.private_key_pem
-  depends_on    = [aws_secretsmanager_secret.key_secret]
-}
-
-resource "aws_key_pair" "dsa_windows_key_pair" {
-  key_name   = "DSA-windows-key"
-  public_key = tls_private_key.dsa_windows_key.public_key_openssh
-
-  lifecycle {
-    prevent_destroy = true
-    ignore_changes  = [key_name]
-  }
+resource "aws_key_pair" "windows_key_pair" {
+  key_name   = "windows2016-key"
+  public_key = tls_private_key.windows_key.public_key_openssh
 }
 
 resource "aws_vpc" "main" {
@@ -60,8 +58,8 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-resource "aws_security_group" "ec2_sg" {
-  name        = "ec2-dSawindows-sg"
+resource "aws_security_group" "windows_sg" {
+  name        = "windows2016-sg"
   description = "Allow RDP and SSM"
   vpc_id      = aws_vpc.main.id
 
@@ -81,7 +79,7 @@ resource "aws_security_group" "ec2_sg" {
 }
 
 resource "aws_iam_role" "ssm_role" {
-  name = "ec2_ssm_role-DSA"
+  name = "ec2_ssm_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -101,29 +99,29 @@ resource "aws_iam_role_policy_attachment" "ssm_attach" {
 }
 
 resource "aws_iam_instance_profile" "ssm_profile" {
-  name = "ssm-instance-profile1"
+  name = "ssm-instance-profile"
   role = aws_iam_role.ssm_role.name
 }
 
-data "aws_ami" "dsa_windows" {
+data "aws_ami" "windows2016" {
   most_recent = true
   owners      = ["801119661308"]
 
   filter {
     name   = "name"
-    values = ["Windows_Server-2019-English-Full-Base-*"]
+    values = ["Windows_Server-2016-English-Full-Base-*"]
   }
 }
 
-resource "aws_instance" "windows_ec2" {
-  ami                    = data.aws_ami.dsa_windows.id
+resource "aws_instance" "windows2016" {
+  ami                    = data.aws_ami.windows2016.id
   instance_type          = "t3.medium"
   subnet_id              = aws_subnet.public.id
-  key_name               = aws_key_pair.dsa_windows_key_pair.key_name
-  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+  key_name               = aws_key_pair.windows_key_pair.key_name
+  vpc_security_group_ids = [aws_security_group.windows_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
 
   tags = {
-    Name = "Windows-EC2-Fleet"
+    Name = "Windows2016-EC2"
   }
 }
