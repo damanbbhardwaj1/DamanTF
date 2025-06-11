@@ -1,12 +1,11 @@
-
 output "instance_id" {
-  value = aws_instance.windows_ec2.id
+  value = aws_instance.windows2016.id
 }
 
 output "public_ip" {
-  value = aws_instance.windows_ec2.public_ip
+  value = aws_instance.windows2016.public_ip
 }
 
-output "key_secret_arn" {
-  value = aws_secretsmanager_secret.key_secret.arn
+output "key_ssm_parameter_arn" {
+  value = aws_ssm_parameter.windows_private_key.arn
 }
