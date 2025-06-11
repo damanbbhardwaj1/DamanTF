@@ -9,18 +9,29 @@ resource "tls_private_key" "d_windows_key" {
 
 resource "aws_secretsmanager_secret" "key_secret" {
   name = "d-windows"
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [name]
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "key_secret_version" {
   secret_id     = aws_secretsmanager_secret.key_secret.id
   secret_string = tls_private_key.d_windows_key.private_key_pem
+  depends_on    = [aws_secretsmanager_secret.key_secret]
 }
 
 resource "aws_key_pair" "d_windows_key_pair" {
   key_name   = "d-windows-key"
   public_key = tls_private_key.d_windows_key.public_key_openssh
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [key_name]
+  }
 }
 
+# VPC & Networking
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
@@ -50,6 +61,7 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public_rt.id
 }
 
+# Security
 resource "aws_security_group" "ec2_sg" {
   name        = "ec2-dwindows-sg"
   description = "Allow RDP and SSM"
@@ -70,6 +82,7 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
+# IAM & SSM
 resource "aws_iam_role" "ssm_role" {
   name = "ec2_ssm_role"
 
@@ -95,6 +108,7 @@ resource "aws_iam_instance_profile" "ssm_profile" {
   role = aws_iam_role.ssm_role.name
 }
 
+# AMI
 data "aws_ami" "d_windows" {
   most_recent = true
   owners      = ["801119661308"]
@@ -105,6 +119,7 @@ data "aws_ami" "d_windows" {
   }
 }
 
+# EC2
 resource "aws_instance" "windows_ec2" {
   ami                    = data.aws_ami.d_windows.id
   instance_type          = "t3.medium"
