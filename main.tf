@@ -2,13 +2,13 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-resource "tls_private_key" "da_windows_key" {
+resource "tls_private_key" "dsa_windows_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
 resource "aws_secretsmanager_secret" "key_secret" {
-  name = "DA-windows"
+  name = "DSA-windows"
   lifecycle {
     prevent_destroy = true
     ignore_changes  = [name]
@@ -17,13 +17,13 @@ resource "aws_secretsmanager_secret" "key_secret" {
 
 resource "aws_secretsmanager_secret_version" "key_secret_version" {
   secret_id     = aws_secretsmanager_secret.key_secret.id
-  secret_string = tls_private_key.da_windows_key.private_key_pem
+  secret_string = tls_private_key.dsa_windows_key.private_key_pem
   depends_on    = [aws_secretsmanager_secret.key_secret]
 }
 
-resource "aws_key_pair" "da_windows_key_pair" {
-  key_name   = "DA-windows-key"
-  public_key = tls_private_key.da_windows_key.public_key_openssh
+resource "aws_key_pair" "dsa_windows_key_pair" {
+  key_name   = "DSA-windows-key"
+  public_key = tls_private_key.dsa_windows_key.public_key_openssh
 
   lifecycle {
     prevent_destroy = true
@@ -61,7 +61,7 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 resource "aws_security_group" "ec2_sg" {
-  name        = "ec2-dawindows-sg"
+  name        = "ec2-dSawindows-sg"
   description = "Allow RDP and SSM"
   vpc_id      = aws_vpc.main.id
 
@@ -81,7 +81,7 @@ resource "aws_security_group" "ec2_sg" {
 }
 
 resource "aws_iam_role" "ssm_role" {
-  name = "ec2_ssm_role"
+  name = "ec2_ssm_role-DSA"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -105,7 +105,7 @@ resource "aws_iam_instance_profile" "ssm_profile" {
   role = aws_iam_role.ssm_role.name
 }
 
-data "aws_ami" "da_windows" {
+data "aws_ami" "dsa_windows" {
   most_recent = true
   owners      = ["801119661308"]
 
@@ -116,10 +116,10 @@ data "aws_ami" "da_windows" {
 }
 
 resource "aws_instance" "windows_ec2" {
-  ami                    = data.aws_ami.da_windows.id
+  ami                    = data.aws_ami.dsa_windows.id
   instance_type          = "t3.medium"
   subnet_id              = aws_subnet.public.id
-  key_name               = aws_key_pair.da_windows_key_pair.key_name
+  key_name               = aws_key_pair.dsa_windows_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
 
