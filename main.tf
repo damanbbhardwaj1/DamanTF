@@ -5,7 +5,7 @@ provider "aws" {
 # S3 backend configuration
 terraform {
   backend "s3" {
-    bucket = "sfstatefile"
+    bucket = "tfstatefile"
     key    = "terraform/windows2016-server/terraform.tfstate"
     region = "ap-south-1"
   }
