@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "eu-west-1"
+  region = "ap-south-1"
 }
 
 resource "tls_private_key" "dsa_windows_key" {
@@ -101,7 +101,7 @@ resource "aws_iam_role_policy_attachment" "ssm_attach" {
 }
 
 resource "aws_iam_instance_profile" "ssm_profile" {
-  name = "ssm-instance-profile"
+  name = "ssm-instance-profile1"
   role = aws_iam_role.ssm_role.name
 }
 
