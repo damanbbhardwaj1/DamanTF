@@ -2,29 +2,27 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-# S3 backend configuration
 terraform {
   backend "s3" {
-    bucket = "d-tfstatefile"
+    bucket = "sfstatefile"
     key    = "terraform/windows2016-server/terraform.tfstate"
     region = "ap-south-1"
   }
 }
-resource "aws_secretsmanager_secret" "windows_key_secret" {
-  name        = "windows2016-key-secret"
-  description = "Private key for Windows 2016 EC2 instance"
-}
+
 resource "tls_private_key" "windows_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-resource "aws_ssm_parameter" "windows_private_key" {
-  name        = "/ec2/windows2016/private_key"
-  type        = "SecureString"
-  value       = tls_private_key.windows_key.private_key_pem
-  description = "Windows 2016 EC2 private key for RDP access"
-  overwrite   = true
+resource "aws_secretsmanager_secret" "windows_key_secret" {
+  name        = "windows2016-key-secret"
+  description = "Private key for Windows 2016 EC2 instance"
+}
+
+resource "aws_secretsmanager_secret_version" "windows_key_secret_version" {
+  secret_id     = aws_secretsmanager_secret.windows_key_secret.id
+  secret_string = tls_private_key.windows_key.private_key_pem
 }
 
 resource "aws_key_pair" "windows_key_pair" {
