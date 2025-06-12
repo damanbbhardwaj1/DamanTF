@@ -10,7 +10,10 @@ terraform {
     region = "ap-south-1"
   }
 }
-
+resource "aws_secretsmanager_secret" "windows_key_secret" {
+  name        = "windows2016-key-secret"
+  description = "Private key for Windows 2016 EC2 instance"
+}
 resource "tls_private_key" "windows_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
