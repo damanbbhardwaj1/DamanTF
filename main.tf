@@ -16,14 +16,12 @@ resource "tls_private_key" "windows_key" {
   rsa_bits  = 4096
 }
 
-resource "aws_secretsmanager_secret" "windows_key_secret" {
-  name        = "windows2016-key-secret"
-  description = "Private key for Windows 2016 EC2 instance"
-}
-
-resource "aws_secretsmanager_secret_version" "windows_key_secret_version" {
-  secret_id     = aws_secretsmanager_secret.windows_key_secret.id
-  secret_string = tls_private_key.windows_key.private_key_pem
+resource "aws_ssm_parameter" "windows_private_key" {
+  name        = "/ec2/windows2016/private_key"
+  type        = "SecureString"
+  value       = tls_private_key.windows_key.private_key_pem
+  description = "Windows 2016 EC2 private key for RDP access"
+  overwrite   = true
 }
 
 resource "aws_key_pair" "windows_key_pair" {
@@ -126,16 +124,4 @@ resource "aws_instance" "windows2016" {
   tags = {
     Name = "Windows2016-EC2"
   }
-}
-
-output "instance_id" {
-  value = aws_instance.windows2016.id
-}
-
-output "public_ip" {
-  value = aws_instance.windows2016.public_ip
-}
-
-output "key_secret_arn" {
-  value = aws_secretsmanager_secret.windows_key_secret.arn
 }
